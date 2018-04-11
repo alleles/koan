@@ -24,9 +24,16 @@ angular.module('koan.common').factory('api', function ($rootScope, $http, $windo
     return {
       subscribe: function (componentCtrl, fn) {
         if (fn) {
+          if (!componentCtrl.unsubscribeOnDestroy) {
+            componentCtrl.unsubscribeOnDestroy = [];
+          }
+          componentCtrl.unsubscribeOnDestroy.push({ callbacks: callbacks, fn: fn });
+
           // unsubscribe from event on component destruction to prevent memory leaks
           componentCtrl.$onDestroy = function () {
-            callbacks.remove(fn);
+            componentCtrl.unsubscribeOnDestroy.forEach(function(subscription){
+              subscription.callbacks.remove(subscription.fn);
+            })
           };
         } else {
           fn = componentCtrl;
